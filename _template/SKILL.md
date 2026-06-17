@@ -87,10 +87,12 @@ For concrete end-to-end walkthroughs, **read `examples.md`**.
 For the full next-action catalog (if the CTA logic is rich), **read `cta.md`**.
 
 ## Required connectors
+<!-- Resolve each via native → substitute → API key (see onboarding § Verify connectors). Source of
+     truth = the live Integrations Catalog, not a hardcoded list. Note the tier in the last column. -->
 
-| Purpose | Connector |
-|---|---|
-| <purpose> | <connector> |
+| Purpose | Connector | Tier |
+|---|---|---|
+| <purpose> | <service> | native / substitute(<why>) / api-key |
 
 ## Out of scope
 

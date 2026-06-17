@@ -118,13 +118,28 @@ A follow-up when a reminded invoice is still unpaid.
 
 ## Accountant summary email
 
-After a close run, deliver the accountant-ready summary as a **PDF**.
+After a close run, deliver the accountant-ready summary as a **2-page PDF** rendered from the scan.
 
 1. Run `close_scan.py`, save its JSON.
-2. Render: `accountant_summary.py <scan_json> <out.pdf> "<company>"` — numbers come from the scan JSON.
+2. Render: `accountant_summary.py <scan_json> <out.pdf> "<company>" "<accountant_email>"` — every
+   number comes from the scan JSON (single source of truth).
 3. **Deliver in chat** (upload the PDF) AND **email it to `accountant_email`** via Gmail with a short
-   covering note (period, net, count of open items). If `accountant_email` is unset, just show it in
-   chat and ask whether to email it (and to whom) — then remember it.
+   covering note (period, net, count of open items). If `accountant_email` is unset, show it in chat
+   and ask whom to send it to — then remember it.
+
+**What the PDF contains** (the renderer uses the scan's *detail*, not just aggregates):
+- **Page 1 — at a glance:** branded header + "prepared for/by" line · an auto-generated **executive
+  summary** sentence · **KPI cards** (Net income with MoM delta · AR outstanding · *Overdue* AR ·
+  Items to fix) · a **color-coded AR-aging bar chart** (90+ in red) · a **close-readiness split** that
+  separates blockers (uncategorized/duplicates/missing — red if >0) from informational counts (open
+  AR/AP, overdue) so open AR is never miscolored as a problem.
+- **Page 2 — detail & actions:** the **open-invoice table** (customer · invoice# · due · status ·
+  amount, overdue first), **duplicate clusters** spelled out, **missing receipts**, and a
+  **recommended-actions** list mirroring the in-chat CTAs.
+
+Design rules: empty sections collapse to a one-line note (e.g. "No open payables") — never print a
+zero-filled table. If a true $0 (e.g. no expenses) is correct, label it so it reads as intentional,
+not missing. If `totals.ties_out` is false, the PDF prints a visible warning instead of hiding it.
 
 ## Slack alerts for blockers
 

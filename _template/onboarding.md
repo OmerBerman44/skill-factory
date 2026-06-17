@@ -18,7 +18,16 @@ Setup is idempotent — safe to re-run; skip any step whose artifact already exi
 
 ## Setup steps (both paths)
 
-1. **Verify connectors** — <list>. If any missing, stop and ask the user to connect them.
+1. **Verify connectors (resolve native → substitute → API key).** For each capability the skill
+   needs, pick the connection in this order and tell the user which tier you chose and why:
+   - **Native Base44 connector** — check the live Integrations Catalog
+     (https://app.base44.com/integrations-catalog; also Databricks, Snowflake, Figma) / the user's
+     available connectors at runtime. If one exists, use it: *"Connect <service> in Settings → Integrations."*
+   - **Equivalent connector** — no native connector for the exact service, but another native one
+     does the job → recommend it (e.g. no PowerPoint → Google Slides / Canva).
+   - **BYO API key** — neither exists → have the user create a key/token in the vendor and connect
+     via the API-key/HTTP path; document where to make it + minimum scopes. Treat it as a secret.
+   If a required capability can't be satisfied by any tier, stop and tell the user.
 2. **Infer what you can, don't ask** — <e.g. home currency / timezone / language from locale>.
    Ask (PATH B only) only for things you genuinely can't infer.
 3. **Create storage** — <Drive folder tree / spreadsheet + tabs / external resource>.

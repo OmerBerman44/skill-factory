@@ -93,6 +93,15 @@ def resolve_period(period_arg):
     return {"label": start.strftime("%B %Y"), "start": start.isoformat(), "end": end.isoformat()}
 
 
+def prev_period(period):
+    """The calendar month before the given period (for month-over-month comparison)."""
+    s = dt.date.fromisoformat(period["start"])
+    py, pm = (s.year, s.month - 1) if s.month > 1 else (s.year - 1, 12)
+    start = dt.date(py, pm, 1)
+    end = dt.date(py, pm, monthrange(py, pm)[1])
+    return {"label": start.strftime("%B %Y"), "start": start.isoformat(), "end": end.isoformat()}
+
+
 # ── QUICKBOOKS API (read-only) ───────────────────────────────────────────────
 def qb_query_page(query):
     """Run one QBO query against the /query endpoint. Read-only GET."""
@@ -341,6 +350,11 @@ def main():
     missing_receipts = find_missing_receipts(purchases, period_bills, get_referenced_txn_keys())
     pnl = parse_pnl(qb_pnl(start, end))
 
+    # Prior-period P&L for month-over-month comparison in the summary.
+    prev = prev_period(period)
+    pnl_prev = parse_pnl(qb_pnl(prev["start"], prev["end"]))
+    pnl_delta = {k: round(pnl[k] - pnl_prev[k], 2) for k in ("income", "expenses", "net")}
+
     ar_aging = build_aging(open_ar)
     ap_aging = build_aging(open_ap)
 
@@ -360,6 +374,9 @@ def main():
         "ar_aging":         ar_aging,
         "ap_aging":         ap_aging,
         "pnl_snapshot":     pnl,
+        "pnl_prev":         pnl_prev,
+        "pnl_delta":        pnl_delta,
+        "prev_period":      prev,
         "totals": {
             "uncategorized_count":  len(uncategorized),
             "open_ar_count":        len(open_ar),

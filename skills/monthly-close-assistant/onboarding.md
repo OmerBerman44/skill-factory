@@ -12,10 +12,13 @@ and the kill switch is on** (step 6).
 
 ## Setup steps
 
-1. **Verify connectors.** Need: **QuickBooks** (always), **Gmail** (reminders + summary email),
-   **Slack** (alerts), **Google Sheets** (reminder ledger). If any are missing, list them and ask
-   the user to connect in Settings → Integrations. QuickBooks is required to do anything; the others
-   gate their specific features (e.g. no Slack → skip alerts, don't block the close).
+1. **Verify connectors (native → substitute → API key).** Need: **QuickBooks** (always), **Gmail**
+   (reminders + summary email), **Slack** (alerts), **Google Sheets** (reminder ledger). All four are
+   **native Base44 connectors** (per the Integrations Catalog) — use them directly, no API keys. If
+   any is missing, ask the user to connect it in Settings → Integrations. QuickBooks is required to do
+   anything; the others gate their specific features (e.g. no Slack → skip alerts, don't block the
+   close). If a native connector were ever unavailable, fall back per the resolution order: an
+   equivalent native connector, else a BYO API key. (See the spec's *Connector resolution*.)
 2. **Identify the company.** If multiple QuickBooks companies, ask which (store `company_id`); else use the one.
 3. **Confirm close basics** (ask once, infer where possible):
    - Fiscal year start (default: January / calendar year).

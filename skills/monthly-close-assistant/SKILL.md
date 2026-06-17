@@ -125,12 +125,16 @@ Worked walkthroughs (incl. gated fixes, a reminder run, an escalation, a paid-in
 
 ## Required connectors
 
-| Purpose | Connector |
-|---|---|
-| Read txns/invoices/bills/AR/AP; apply approved fixes | QuickBooks |
-| Send AR reminders, escalations, and the accountant summary | Gmail |
-| Alert on critical blockers | Slack |
-| AR reminder ledger (history, dedup, escalation state) | Google Sheets |
+All four are **native Base44 connectors** per the Integrations Catalog — use them directly (managed
+OAuth, no API keys). Confirm availability at runtime; if any is ever missing, fall back per the
+resolution order in `onboarding.md` § Verify connectors.
+
+| Purpose | Connector | Tier |
+|---|---|---|
+| Read txns/invoices/bills/AR/AP; apply approved fixes | QuickBooks | native |
+| Send AR reminders, escalations, and the accountant summary | Gmail | native |
+| Alert on critical blockers | Slack | native |
+| AR reminder ledger (history, dedup, escalation state) | Google Sheets | native |
 
 ## Out of scope
 
@@ -152,9 +156,9 @@ tokens and export them, then:
 QUICKBOOKS_ACCESS_TOKEN=… \
   python3 .agents/skills/monthly-close-assistant/scripts/close_scan.py <company_id> <YYYY-MM>
 
-# 2. Accountant summary PDF — renders from the saved scan JSON (numbers tie to the scan)
+# 2. Accountant summary PDF (2-page package) — renders from the saved scan JSON (numbers tie to scan)
 python3 .agents/skills/monthly-close-assistant/scripts/accountant_summary.py \
-  <scan_json_path> <output_pdf_path> "<company name>"
+  <scan_json_path> <output_pdf_path> "<company name>" "<accountant_email (optional)>"
 
 # 3. AR reminder eligibility — who is due, at what stage, with live balances (READ-ONLY)
 QUICKBOOKS_ACCESS_TOKEN=… GOOGLESHEETS_ACCESS_TOKEN=… \
@@ -163,6 +167,8 @@ REMINDER_FIRST_TRIGGER=on_due REMINDER_ESCALATION_DAYS=7 REMINDER_MAX_ATTEMPTS=3
 ```
 
 `close_scan.py` JSON: `{ period, uncategorized[], open_ar[], open_ap[], duplicates[],
-missing_receipts[], ar_aging{}, ap_aging{}, pnl_snapshot{}, totals{} }`.
+missing_receipts[], ar_aging{}, ap_aging{}, pnl_snapshot{}, pnl_prev{}, pnl_delta{}, totals{} }`.
+The summary renderer uses the detail arrays (`open_ar[]`, `duplicates[]`, `missing_receipts[]`) and
+`pnl_delta` (month-over-month) — not just the aggregates.
 `reminders_due.py` JSON: `{ policy{}, to_send[], skipped[] }`. The agent drafts/sends and logs;
 the script never sends. If a number/eligibility isn't in script output, don't act on it.

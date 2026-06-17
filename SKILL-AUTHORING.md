@@ -147,9 +147,32 @@ For every script, `agent_rule.md` states: the script exists, what it does, and
 "DO NOT write inline code that duplicates it — run the script." This is the #1 failure
 mode of capable models: they helpfully rewrite your tested renderer and get it subtly wrong.
 
-### Connector / scope hygiene
-List required connectors in a table. List explicit **out-of-scope** items — saying what
-the skill does *not* do prevents the agent from improvising into the wrong product.
+### Connector resolution — native → substitute → API key
+Don't assume *how* a skill reaches an external service. For each capability it needs, resolve the
+connection in this priority order and recommend the highest tier available:
+
+1. **Native Base44 connector (preferred).** If Base44 offers a managed OAuth connector for the
+   service, use it — auth and token refresh are handled, nothing for the user to store. The **live
+   source of truth** for what exists is the Integrations Catalog
+   (https://app.base44.com/integrations-catalog); known beyond the catalog page: **Databricks,
+   Snowflake, Figma**. **Check the catalog / the user's available connectors at runtime — never trust
+   a hardcoded list** (the catalog grows). Recommend: *"Connect &lt;service&gt; in Settings → Integrations."*
+2. **Equivalent connector (substitute the tool).** No native connector for the exact service, but a
+   *different* service with a native connector does the same job → recommend that, and say why. E.g.
+   need to build a slide deck but there's no PowerPoint connector → use **Google Slides** or **Canva**
+   (both native). Prefer the substitute that fits the user's existing stack.
+3. **Bring-your-own API key (fallback).** Neither exists → have the user create an API key/token in
+   the vendor's dashboard and connect via the generic API-key / HTTP path. Document exactly where to
+   create the key and the minimum scopes. Treat it as a secret — never log it or write it to a
+   shared/team location.
+
+Always state which tier you're using and why, so the user understands the tradeoff (managed vs.
+self-managed credentials). Do this in onboarding's connector-verification step, before first use.
+
+### Scope hygiene
+List required connectors in a table (note the resolution tier for each). List explicit
+**out-of-scope** items — saying what the skill does *not* do prevents the agent from improvising
+into the wrong product.
 
 ### Deterministic scripts: contract
 - Read inputs from args + env (e.g. a sheet ID + an access token), never hardcode.
@@ -236,6 +259,8 @@ A skill is not done until every box is checked:
 - [ ] If automation-triggered: the silence rule is explicit.
 - [ ] If stateful: onboarding is idempotent, self-healing, with a termination rule.
 - [ ] Required connectors listed; out-of-scope items listed.
+- [ ] Each connector is resolved native → substitute → API key, against the **live catalog** (not a
+      hardcoded list); the chosen tier and why are stated in onboarding.
 
 **Value (complete workflow — pattern 7)**
 - [ ] Every terminal output offers or triggers at least one next action (CTA) — no dead-ends.
